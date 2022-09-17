@@ -9,6 +9,7 @@ module.exports = class AlbumsHandler {
 
     this.postAlbumHandler = this.postAlbumHandler.bind(this);
     this.getAlbumsByIdHandler = this.getAlbumsByIdHandler.bind(this);
+    this.putAlbumById = this.putAlbumById.bind(this);
 
     this._renderSuccessResponse = this._renderSuccessResponse.bind(this);
     this._renderFailedResponse = this._renderFailedResponse.bind(this);
@@ -36,6 +37,21 @@ module.exports = class AlbumsHandler {
 
       return this._renderSuccessResponse(h, {
         data: {album},
+      });
+    } catch (e) {
+      return this._renderFailedResponse({h, e});
+    }
+  }
+
+  async putAlbumById(req, h) {
+    try {
+      const {id} = req.params;
+      this._validator.validateAlbumPayload(req.payload);
+      const {name, year} = req.payload;
+      await this._servide.editAlbumById(id, {name, year});
+
+      return this._renderSuccessResponse(h, {
+        msg: 'success to update album',
       });
     } catch (e) {
       return this._renderFailedResponse({h, e});

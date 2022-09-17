@@ -33,6 +33,18 @@ class AlbumsService {
 
     return res.rows[0];
   }
+
+  async editAlbumById(id, {name, year}) {
+    const res = await this._pool.query({
+      // eslint-disable-next-line max-len
+      text: 'UPDATE albums SET name = $1, year = $2 WHERE id = $3 RETURNING id',
+      values: [name, year, id],
+    });
+
+    if (!res.rows.length) {
+      throw new NotFoundError('failed to update album. Id can not be found');
+    }
+  }
 }
 
 module.exports = AlbumsService;
