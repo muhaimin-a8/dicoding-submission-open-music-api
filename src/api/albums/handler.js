@@ -8,6 +8,7 @@ module.exports = class AlbumsHandler {
     this._validator = validator;
 
     this.postAlbumHandler = this.postAlbumHandler.bind(this);
+    this.getAlbumsByIdHandler = this.getAlbumsByIdHandler.bind(this);
 
     this._renderSuccessResponse = this._renderSuccessResponse.bind(this);
     this._renderFailedResponse = this._renderFailedResponse.bind(this);
@@ -19,9 +20,7 @@ module.exports = class AlbumsHandler {
       const {name, year} = req.payload;
       const albumId = await this._servide.addAlbum({name, year});
 
-      return this._renderSuccessResponse({
-        h: h,
-        msg: 'Success to add new Album',
+      return this._renderSuccessResponse(h, {
         data: {albumId},
         statusCode: 201,
       });
@@ -30,12 +29,35 @@ module.exports = class AlbumsHandler {
     }
   }
 
-  _renderSuccessResponse({h, msg, data, statusCode = 200}) {
-    const res = h.response({
+  async getAlbumsByIdHandler(req, h) {
+    try {
+      const {id} = req.params;
+      const album = await this._servide.getAlbumById(id);
+
+      return this._renderSuccessResponse(h, {
+        data: {album},
+      });
+    } catch (e) {
+      return this._renderFailedResponse({h, e});
+    }
+  }
+
+  _renderSuccessResponse(h, {msg, data, statusCode = 200}) {
+    const resObj = {
       status: 'success',
       message: msg,
       data: data,
-    });
+    };
+
+    if (msg === null) {
+      delete resObj['message'];
+    }
+
+    if (data === null) {
+      delete resObj['data'];
+    }
+
+    const res = h.response(resObj);
     res.code(statusCode);
 
     return res;
