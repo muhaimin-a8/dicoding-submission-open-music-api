@@ -2,12 +2,13 @@ const ClientError = require('../../exceptions/ClientError');
 const fs = require('fs');
 const path = require('path');
 
-module.exports = class AlbumsHandler {
+module.exports = class SongsHandler {
   constructor(service, validator) {
     this._service = service;
     this._validator = validator;
 
     this.postSongHandler = this.postSongHandler.bind(this);
+    this.getSongsHandler = this.getSongsHandler.bind(this);
     // this.getAlbumsByIdHandler = this.getAlbumsByIdHandler.bind(this);
     // this.putAlbumById = this.putAlbumById.bind(this);
     // this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
@@ -30,6 +31,18 @@ module.exports = class AlbumsHandler {
       });
     } catch (e) {
       return this._renderFailedResponse({h: h, e: e});
+    }
+  }
+
+  async getSongsHandler(req, h) {
+    try {
+      const songs = await this._service.getSongs();
+
+      return this._renderSuccessResponse(h, {
+        data: {songs},
+      });
+    } catch (e) {
+      return this._renderFailedResponse({h, e});
     }
   }
   //
