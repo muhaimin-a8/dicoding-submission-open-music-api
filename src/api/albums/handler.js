@@ -4,12 +4,13 @@ const path = require('path');
 
 module.exports = class AlbumsHandler {
   constructor(service, validator) {
-    this._servide = service;
+    this._service = service;
     this._validator = validator;
 
     this.postAlbumHandler = this.postAlbumHandler.bind(this);
     this.getAlbumsByIdHandler = this.getAlbumsByIdHandler.bind(this);
     this.putAlbumById = this.putAlbumById.bind(this);
+    this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
 
     this._renderSuccessResponse = this._renderSuccessResponse.bind(this);
     this._renderFailedResponse = this._renderFailedResponse.bind(this);
@@ -19,7 +20,7 @@ module.exports = class AlbumsHandler {
     try {
       this._validator.validateAlbumPayload(req.payload);
       const {name, year} = req.payload;
-      const albumId = await this._servide.addAlbum({name, year});
+      const albumId = await this._service.addAlbum({name, year});
 
       return this._renderSuccessResponse(h, {
         data: {albumId},
@@ -33,7 +34,7 @@ module.exports = class AlbumsHandler {
   async getAlbumsByIdHandler(req, h) {
     try {
       const {id} = req.params;
-      const album = await this._servide.getAlbumById(id);
+      const album = await this._service.getAlbumById(id);
 
       return this._renderSuccessResponse(h, {
         data: {album},
@@ -48,10 +49,23 @@ module.exports = class AlbumsHandler {
       const {id} = req.params;
       this._validator.validateAlbumPayload(req.payload);
       const {name, year} = req.payload;
-      await this._servide.editAlbumById(id, {name, year});
+      await this._service.editAlbumById(id, {name, year});
 
       return this._renderSuccessResponse(h, {
         msg: 'success to update album',
+      });
+    } catch (e) {
+      return this._renderFailedResponse({h, e});
+    }
+  }
+
+  async deleteAlbumByIdHandler(req, h) {
+    try {
+      const {id} = req.params;
+      await this._service.deleteAlbumById(id);
+
+      return this._renderSuccessResponse(h, {
+        msg: 'success to delete album',
       });
     } catch (e) {
       return this._renderFailedResponse({h, e});
