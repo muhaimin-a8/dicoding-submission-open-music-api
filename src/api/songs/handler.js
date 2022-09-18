@@ -9,9 +9,9 @@ module.exports = class SongsHandler {
 
     this.postSongHandler = this.postSongHandler.bind(this);
     this.getSongsHandler = this.getSongsHandler.bind(this);
-    // this.getAlbumsByIdHandler = this.getAlbumsByIdHandler.bind(this);
-    // this.putAlbumById = this.putAlbumById.bind(this);
-    // this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
+    this.getDetailSongByIdHandler = this.getDetailSongByIdHandler.bind(this);
+    this.putSongById = this.putSongById.bind(this);
+    this.deleteSongByIdHandler = this.deleteSongByIdHandler.bind(this);
 
     this._renderSuccessResponse = this._renderSuccessResponse.bind(this);
     this._renderFailedResponse = this._renderFailedResponse.bind(this);
@@ -45,47 +45,49 @@ module.exports = class SongsHandler {
       return this._renderFailedResponse({h, e});
     }
   }
-  //
-  // async getAlbumsByIdHandler(req, h) {
-  //   try {
-  //     const {id} = req.params;
-  //     const album = await this._service.getAlbumById(id);
-  //
-  //     return this._renderSuccessResponse(h, {
-  //       data: {album},
-  //     });
-  //   } catch (e) {
-  //     return this._renderFailedResponse({h, e});
-  //   }
-  // }
-  //
-  // async putAlbumById(req, h) {
-  //   try {
-  //     const {id} = req.params;
-  //     this._validator.validateAlbumPayload(req.payload);
-  //     const {name, year} = req.payload;
-  //     await this._service.editAlbumById(id, {name, year});
-  //
-  //     return this._renderSuccessResponse(h, {
-  //       msg: 'success to update album',
-  //     });
-  //   } catch (e) {
-  //     return this._renderFailedResponse({h, e});
-  //   }
-  // }
-  //
-  // async deleteAlbumByIdHandler(req, h) {
-  //   try {
-  //     const {id} = req.params;
-  //     await this._service.deleteAlbumById(id);
-  //
-  //     return this._renderSuccessResponse(h, {
-  //       msg: 'success to delete album',
-  //     });
-  //   } catch (e) {
-  //     return this._renderFailedResponse({h, e});
-  //   }
-  // }
+
+  async getDetailSongByIdHandler(req, h) {
+    try {
+      const {id} = req.params;
+      const song = await this._service.getDetailSongById(id);
+
+      return this._renderSuccessResponse(h, {
+        data: {song},
+      });
+    } catch (e) {
+      return this._renderFailedResponse({h, e});
+    }
+  }
+
+  async putSongById(req, h) {
+    try {
+      const {id} = req.params;
+      this._validator.validateSongPayload(req.payload);
+      const {title, year, genre, performer, duration, albumId} = req.payload;
+      await this._service.editSongById(id, {
+        title, year, genre, performer, duration, albumId,
+      });
+
+      return this._renderSuccessResponse(h, {
+        msg: 'success to update song',
+      });
+    } catch (e) {
+      return this._renderFailedResponse({h, e});
+    }
+  }
+
+  async deleteSongByIdHandler(req, h) {
+    try {
+      const {id} = req.params;
+      await this._service.deleteSongById(id);
+
+      return this._renderSuccessResponse(h, {
+        msg: 'success to delete song',
+      });
+    } catch (e) {
+      return this._renderFailedResponse({h, e});
+    }
+  }
 
   _renderSuccessResponse(h, {msg, data, statusCode = 200}) {
     const resObj = {

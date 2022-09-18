@@ -4,4 +4,11 @@ const mapDBToSongModel = ({
   id, title, performer,
 });
 
-module.exports = {mapDBToSongModel};
+const mapDBToDetailSongModel = ({
+// eslint-disable-next-line camelcase
+  id, title, year, genre, performer, duration, album_id,
+}) => ({
+  id, title, year, genre, performer, duration, albumId: album_id,
+});
+
+module.exports = {mapDBToSongModel, mapDBToDetailSongModel};

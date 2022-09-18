@@ -9,21 +9,21 @@ const routes = (handler) => [
     path: '/songs',
     handler: handler.getSongsHandler,
   },
-  // {
-  //   method: 'GET',
-  //   path: '/songs/{id}',
-  //   handler: handler.getAlbumsByIdHandler,
-  // },
-  // {
-  //   method: 'PUT',
-  //   path: '/songs/{id}',
-  //   handler: handler.putAlbumById,
-  // },
-  // {
-  //   method: 'DELETE',
-  //   path: '/songs/{id}',
-  //   handler: handler.deleteAlbumByIdHandler,
-  // },
+  {
+    method: 'GET',
+    path: '/songs/{id}',
+    handler: handler.getDetailSongByIdHandler,
+  },
+  {
+    method: 'PUT',
+    path: '/songs/{id}',
+    handler: handler.putSongById,
+  },
+  {
+    method: 'DELETE',
+    path: '/songs/{id}',
+    handler: handler.deleteSongByIdHandler,
+  },
 ];
 
 module.exports = routes;
