@@ -28,16 +28,9 @@ exports.up = (pgm) => {
       type: 'INT',
       allowNull: true,
     },
-    albumId: {
+    album_id: {
       type: 'VARCHAR(30)',
       allowNull: true,
-    },
-  });
-
-  pgm.addConstraint('songs', 'fk_songs_albums', {
-    foreignKeys: {
-      columns: ['albumId'],
-      references: 'albums(id)',
     },
   });
 };
