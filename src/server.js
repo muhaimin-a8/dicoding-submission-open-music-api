@@ -1,8 +1,13 @@
 require('dotenv').config();
 const Hapi = require('@hapi/hapi');
+
 const AlbumsService = require('./services/postgres/AlbumsService');
 const albumsPlugin = require('./api/albums');
 const AlbumsValidator = require('./validator/albums');
+
+const SongsService = require('./services/postgres/SongsService');
+const songsPlugin = require('./api/songs');
+const SongsValidator = require('./validator/songs');
 
 const init = async ()=>{
   const server = Hapi.server({
@@ -21,6 +26,14 @@ const init = async ()=>{
     options: {
       service: new AlbumsService(),
       validator: AlbumsValidator,
+    },
+  });
+
+  await server.register({
+    plugin: songsPlugin,
+    options: {
+      service: new SongsService(),
+      validator: SongsValidator,
     },
   });
 
