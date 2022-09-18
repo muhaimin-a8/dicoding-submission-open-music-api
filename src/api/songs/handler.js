@@ -36,7 +36,8 @@ module.exports = class SongsHandler {
 
   async getSongsHandler(req, h) {
     try {
-      const songs = await this._service.getSongs();
+      const {title, performer} = req.query;
+      const songs = await this._service.getSongs({title, performer});
 
       return this._renderSuccessResponse(h, {
         data: {songs},

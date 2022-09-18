@@ -22,8 +22,23 @@ class SongsService {
     return res.rows[0].id;
   }
 
-  async getSongs() {
-    const res = await this._pool.query('SELECT * FROM songs');
+  async getSongs({title, performer}) {
+    const query = {
+      text: 'SELECT * FROM songs',
+    };
+    if (title && performer) {
+      // eslint-disable-next-line max-len
+      query.text = `SELECT * FROM songs WHERE title ILIKE '%'||$1||'%' AND performer ILIKE '%'||$2||'%' `;
+      query.values = [title, performer];
+    } else if (title) {
+      query.text = `SELECT * FROM songs WHERE title ILIKE '%'||$1||'%'`;
+      query.values = [title];
+    } else if (performer) {
+      // eslint-disable-next-line max-len
+      query.text = `SELECT * FROM songs WHERE performer ILIKE '%'||$1||'%'`;
+      query.values = [performer];
+    }
+    const res = await this._pool.query(query);
     return res.rows.map(mapDBToSongModel);
   }
 
