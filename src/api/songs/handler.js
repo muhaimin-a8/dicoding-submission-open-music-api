@@ -1,7 +1,3 @@
-const ClientError = require('../../exceptions/ClientError');
-const fs = require('fs');
-const path = require('path');
-
 module.exports = class SongsHandler {
   constructor(service, validator) {
     this._service = service;
@@ -13,84 +9,60 @@ module.exports = class SongsHandler {
     this.putSongById = this.putSongById.bind(this);
     this.deleteSongByIdHandler = this.deleteSongByIdHandler.bind(this);
 
-    this._renderSuccessResponse = this._renderSuccessResponse.bind(this);
-    this._renderFailedResponse = this._renderFailedResponse.bind(this);
+    this._renderResponse = this._renderResponse.bind(this);
   }
 
   async postSongHandler(req, h) {
-    try {
-      this._validator.validateSongPayload(req.payload);
-      const {title, year, genre, performer, duration, albumId} = req.payload;
-      const songId = await this._service.addSong({
-        title, year, genre, performer, duration, albumId,
-      });
+    this._validator.validateSongPayload(req.payload);
+    const songId = await this._service.addSong(req.payload);
 
-      return this._renderSuccessResponse(h, {
-        data: {songId},
-        statusCode: 201,
-      });
-    } catch (e) {
-      return this._renderFailedResponse({h: h, e: e});
-    }
+    return this._renderResponse(h, {
+      data: {songId},
+      statusCode: 201,
+    });
   }
 
   async getSongsHandler(req, h) {
-    try {
-      const {title, performer} = req.query;
-      const songs = await this._service.getSongs({title, performer});
+    const {title, performer} = req.query;
+    const songs = await this._service.getSongs({title, performer});
 
-      return this._renderSuccessResponse(h, {
-        data: {songs},
-      });
-    } catch (e) {
-      return this._renderFailedResponse({h, e});
-    }
+    return this._renderResponse(h, {
+      data: {songs},
+    });
   }
 
   async getDetailSongByIdHandler(req, h) {
-    try {
-      const {id} = req.params;
-      const song = await this._service.getDetailSongById(id);
+    const {id} = req.params;
+    const song = await this._service.getDetailSongById(id);
 
-      return this._renderSuccessResponse(h, {
-        data: {song},
-      });
-    } catch (e) {
-      return this._renderFailedResponse({h, e});
-    }
+    return this._renderResponse(h, {
+      data: {song},
+    });
   }
 
   async putSongById(req, h) {
-    try {
-      const {id} = req.params;
-      this._validator.validateSongPayload(req.payload);
-      const {title, year, genre, performer, duration, albumId} = req.payload;
-      await this._service.editSongById(id, {
-        title, year, genre, performer, duration, albumId,
-      });
+    const {id} = req.params;
+    this._validator.validateSongPayload(req.payload);
+    const {title, year, genre, performer, duration, albumId} = req.payload;
+    await this._service.editSongById(id, {
+      title, year, genre, performer, duration, albumId,
+    });
 
-      return this._renderSuccessResponse(h, {
-        msg: 'success to update song',
-      });
-    } catch (e) {
-      return this._renderFailedResponse({h, e});
-    }
+    return this._renderResponse(h, {
+      msg: 'success to update song',
+    });
   }
 
   async deleteSongByIdHandler(req, h) {
-    try {
-      const {id} = req.params;
-      await this._service.deleteSongById(id);
+    const {id} = req.params;
+    await this._service.deleteSongById(id);
 
-      return this._renderSuccessResponse(h, {
-        msg: 'success to delete song',
-      });
-    } catch (e) {
-      return this._renderFailedResponse({h, e});
-    }
+    return this._renderResponse(h, {
+      msg: 'success to delete song',
+    });
   }
 
-  _renderSuccessResponse(h, {msg, data, statusCode = 200}) {
+  _renderResponse(h, {msg, data, statusCode = 200}) {
     const resObj = {
       status: 'success',
       message: msg,
@@ -110,37 +82,4 @@ module.exports = class SongsHandler {
 
     return res;
   }
-
-  _renderFailedResponse({h, e}) {
-    if (e instanceof ClientError) {
-      const res = h.response({
-        status: 'fail',
-        message: e.message,
-      });
-      res.code(e.statusCode);
-      return res;
-    }
-
-    const res = h.response({
-      status: 'error',
-      message: 'Sorry, there is a failure on our server',
-    });
-    res.code(500);
-
-    // write error log file
-    const logsDir = '../../../logs';
-    const dateTime = new Date().toLocaleString('ind', {
-      timeZone: 'Asia/Jakarta',
-    });
-
-    fs.mkdirSync(path.resolve(__dirname, logsDir), {recursive: true});
-    fs.writeFileSync(
-        `${path.resolve(__dirname, logsDir)}/error.log`,
-        `${dateTime} : ${e.message} \n`,
-        {flag: 'a+'},
-    );
-
-    console.log(e);
-    return res;
-  };
 };

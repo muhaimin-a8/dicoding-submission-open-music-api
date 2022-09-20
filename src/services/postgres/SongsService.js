@@ -2,7 +2,7 @@ const {Pool} = require('pg');
 const {nanoid} = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
-const {mapDBToSongModel, mapDBToDetailSongModel} = require('../../utils/songs');
+const {mapDBToDetailSongModel} = require('../../utils/songs');
 
 class SongsService {
   constructor() {
@@ -22,24 +22,15 @@ class SongsService {
     return res.rows[0].id;
   }
 
-  async getSongs({title, performer}) {
+  async getSongs({title = '', performer = ''}) {
     const query = {
-      text: 'SELECT * FROM songs',
+      // eslint-disable-next-line max-len
+      text: 'SELECT id, title, performer FROM songs WHERE title ILIKE $1 and performer ILIKE $2',
+      values: [`%${title}%`, `%${performer}%`],
     };
-    if (title && performer) {
-      // eslint-disable-next-line max-len
-      query.text = `SELECT * FROM songs WHERE title ILIKE '%'||$1||'%' AND performer ILIKE '%'||$2||'%' `;
-      query.values = [title, performer];
-    } else if (title) {
-      query.text = `SELECT * FROM songs WHERE title ILIKE '%'||$1||'%'`;
-      query.values = [title];
-    } else if (performer) {
-      // eslint-disable-next-line max-len
-      query.text = `SELECT * FROM songs WHERE performer ILIKE '%'||$1||'%'`;
-      query.values = [performer];
-    }
+
     const res = await this._pool.query(query);
-    return res.rows.map(mapDBToSongModel);
+    return res.rows;
   }
 
   async getDetailSongById(id) {
@@ -48,7 +39,7 @@ class SongsService {
       values: [id],
     });
 
-    if (!res.rows.length) {
+    if (!res.rowCount) {
       throw new NotFoundError(`song with id: ${id} can not be found`);
     }
 
@@ -62,7 +53,7 @@ class SongsService {
       values: [title, year, genre, performer, duration, albumId, id],
     });
 
-    if (!res.rows.length) {
+    if (!res.rowCount) {
       throw new NotFoundError('failed to update song. Id can not be found');
     }
   }
@@ -73,7 +64,7 @@ class SongsService {
       values: [id],
     });
 
-    if (!res.rows.length) {
+    if (!res.rowCount) {
       throw new NotFoundError('failed to delete song. Id can not be found');
     }
   }

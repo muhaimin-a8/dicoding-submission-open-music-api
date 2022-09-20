@@ -4,4 +4,4 @@ module.exports = class ClientError extends Error {
     this.statusCode = code;
     this.name = 'ClientError';
   }
-}
+};
