@@ -9,6 +9,10 @@ const SongsService = require('./services/postgres/SongsService');
 const songsPlugin = require('./api/songs');
 const SongsValidator = require('./validator/songs');
 
+const UsersService = require('./services/postgres/UsersService');
+const usersPlugin = require('./api/users');
+const UsersValidator = require('./validator/users');
+
 const ClientError = require('./exceptions/ClientError');
 const fs = require('fs');
 const path = require('path');
@@ -25,21 +29,30 @@ const init = async ()=>{
 
   });
 
-  await server.register({
-    plugin: albumsPlugin,
-    options: {
-      service: new AlbumsService(),
-      validator: AlbumsValidator,
+  await server.register([
+    {
+      plugin: albumsPlugin,
+      options: {
+        service: new AlbumsService(),
+        validator: AlbumsValidator,
+      },
     },
-  });
+    {
+      plugin: songsPlugin,
+      options: {
+        service: new SongsService(),
+        validator: SongsValidator,
+      },
+    },
+    {
+      plugin: usersPlugin,
+      options: {
+        service: new UsersService(),
+        validator: UsersValidator,
+      },
+    },
+  ]);
 
-  await server.register({
-    plugin: songsPlugin,
-    options: {
-      service: new SongsService(),
-      validator: SongsValidator,
-    },
-  });
 
   server.ext('onPreResponse', (req, h) =>{
     const {response} = req;
@@ -58,6 +71,8 @@ const init = async ()=>{
         message: 'Sorry, there is a failure on our server',
       });
       res.code(500);
+
+      console.log(response);
 
       // write error log file
       const logsDir = './../logs';
