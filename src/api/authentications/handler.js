@@ -22,6 +22,19 @@ module.exports = class AuthenticationsHandler {
     });
   }
 
+  async putAuthenticationHandler(req, h) {
+    this._validator.validatePutAuthenticationPayload(req.payload);
+
+    await this._authenticationsService.verifyRefreshToken(req.payload.refreshToken);
+    const {id} = await this._tokenManager.verifyRefreshToken(req.payload.refreshToken);
+
+    return this._renderResponse(h, {
+      data: {
+        accessToken: this._tokenManager.generateAccessToken(id),
+      },
+    });
+  }
+
   _renderResponse(h, {msg, data, statusCode = 200}) {
     const resObj = {
       status: 'success',

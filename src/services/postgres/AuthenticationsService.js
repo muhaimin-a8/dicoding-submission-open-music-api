@@ -1,5 +1,6 @@
 const {Pool} = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
+const {token} = require('@hapi/jwt');
 
 class AuthenticationsService {
   constructor() {
@@ -19,7 +20,7 @@ class AuthenticationsService {
       text: 'SELECT token FROM authentications WHERE token = $1',
       values: [token],
     });
-
+    console.log(token);
     if (!res.rowCount) {
       throw new InvariantError('Invalid refresh token');
     }
