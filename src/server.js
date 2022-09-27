@@ -13,6 +13,12 @@ const UsersService = require('./services/postgres/UsersService');
 const usersPlugin = require('./api/users');
 const UsersValidator = require('./validator/users');
 
+const authenticationsPlugin = require('./api/authentications');
+// eslint-disable-next-line max-len
+const AuthenticationsService = require('./services/postgres/AuthenticationsService');
+const TokenManager = require('./tokenize/TokenManager');
+const AuthenticationsValidator = require('./validator/authentications');
+
 const ClientError = require('./exceptions/ClientError');
 const fs = require('fs');
 const path = require('path');
@@ -49,6 +55,15 @@ const init = async ()=>{
       options: {
         service: new UsersService(),
         validator: UsersValidator,
+      },
+    },
+    {
+      plugin: authenticationsPlugin,
+      options: {
+        authenticationsService: new AuthenticationsService(),
+        usersService: new UsersService(),
+        tokenManager: TokenManager,
+        validator: AuthenticationsValidator,
       },
     },
   ]);

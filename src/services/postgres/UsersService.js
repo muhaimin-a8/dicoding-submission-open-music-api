@@ -2,8 +2,9 @@ const {Pool} = require('pg');
 const {nanoid} = require('nanoid');
 const bcrypt = require('bcryptjs');
 const InvariantError = require('../../exceptions/InvariantError');
+const AuthenticationError = require('../../exceptions/AuthenticationError');
 
-class SongsService {
+class UsersService {
   constructor() {
     this._pool = new Pool();
   }
@@ -37,6 +38,24 @@ class SongsService {
       throw new InvariantError('Failed to add new user. Username already used');
     }
   }
+
+  async verifyUserCredential({username, password}) {
+    const res = await this._pool.query({
+      text: 'SELECT id, password FROM users WHERE username = $1',
+      values: [username],
+    });
+    if (!res.rowCount) {
+      throw new AuthenticationError('Invalid credentials');
+    }
+
+    const {id, password: hashedPass} = res.rows[0];
+
+    if (!await bcrypt.compare(password, hashedPass)) {
+      throw new AuthenticationError('Invalid credentials');
+    }
+
+    return id;
+  }
 }
 
-module.exports = SongsService;
+module.exports = UsersService;
