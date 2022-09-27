@@ -27,6 +27,13 @@ class AuthenticationsService {
 
     return res.rows[0].id;
   }
+
+  async deleteRefreshToken(token) {
+    await this._pool.query({
+      text: 'DELETE FROM authentications WHERE token = $1',
+      values: [token],
+    });
+  }
 }
 
 module.exports = AuthenticationsService;

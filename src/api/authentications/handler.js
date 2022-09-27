@@ -35,6 +35,17 @@ module.exports = class AuthenticationsHandler {
     });
   }
 
+  async deleteAuthenticationHandler(req, h) {
+    this._validator.validateDeleteAuthenticationPayload(req.payload);
+
+    await this._authenticationsService.verifyRefreshToken(req.payload.refreshToken);
+    await this._authenticationsService.deleteRefreshToken(req.payload.refreshToken);
+
+    return this._renderResponse(h, {
+      msg: 'Success to delete refresh token',
+    });
+  }
+
   _renderResponse(h, {msg, data, statusCode = 200}) {
     const resObj = {
       status: 'success',
