@@ -56,6 +56,18 @@ module.exports = class PlaylistsHandler {
     });
   }
 
+  async deleteSongOnPlaylistHandler(req, h) {
+    this._validator.validateDeleteSongOnPlaylistPayload(req.payload);
+
+    await this._playlistsService.verifyPlaylistOwner(req.params.id, req.auth.credentials.id);
+    await this._songsService.verifySongIsExists(req.payload.songId);
+    await this._playlistsService.deleteSongOnPlaylist(req.payload.songId);
+
+    return this._renderResponse(h, {
+      msg: 'success to delete song',
+    });
+  }
+
   _renderResponse(h, {msg, data, statusCode = 200}) {
     const resObj = {
       status: 'success',

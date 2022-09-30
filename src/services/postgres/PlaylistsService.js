@@ -3,7 +3,7 @@ const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 const AuthorizationError = require('../../exceptions/AuthorizationError');
 const {nanoid} = require('nanoid');
-const {mapDBToPlaylistModel, mapDBToDetailSongOnPlaylistModel} = require('../../utils/playlists');
+const {mapDBToPlaylistModel} = require('../../utils/playlists');
 
 module.exports = class PlaylistsService {
   constructor() {
@@ -26,6 +26,7 @@ module.exports = class PlaylistsService {
   }
 
   async getPlaylists(owner) {
+    // TODO change query of this code
     const res = await this._pool.query({
       text: `SELECT playlists.id as playlist_id, playlists.name as name, playlists.owner as owner FROM playlists 
             LEFT JOIN users ON playlists.owner = users.id
@@ -94,5 +95,17 @@ module.exports = class PlaylistsService {
     playlist.rows[0].songs = songs.rows;
 
     return playlist.rows[0];
+  }
+
+  async deleteSongOnPlaylist(songId) {
+    const res = await this._pool.query({
+      text: 'DELETE FROM playlist_songs WHERE song_id = $1 RETURNING id',
+      values: [songId],
+    });
+    console.log(songId);
+    console.log(res.rows);
+    if (!res.rowCount) {
+      throw new NotFoundError('failed to delete song. Id not found');
+    }
   }
 };
