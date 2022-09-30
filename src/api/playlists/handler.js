@@ -16,6 +16,16 @@ module.exports = class PlaylistsHandler {
     });
   }
 
+  async getPlaylistsHandler(req, h) {
+    const {id: credentialId} = req.auth.credentials;
+
+    const playlists = await this._playlistsService.getPlaylists(credentialId);
+    console.log(playlists);
+    return this._renderResponse(h, {
+      data: {playlists},
+    });
+  }
+
   _renderResponse(h, {msg, data, statusCode = 200}) {
     const resObj = {
       status: 'success',
