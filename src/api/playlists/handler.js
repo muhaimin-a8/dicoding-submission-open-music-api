@@ -17,12 +17,19 @@ module.exports = class PlaylistsHandler {
   }
 
   async getPlaylistsHandler(req, h) {
-    const {id: credentialId} = req.auth.credentials;
-
-    const playlists = await this._playlistsService.getPlaylists(credentialId);
+    const playlists = await this._playlistsService.getPlaylists(req.auth.credentials.id);
     console.log(playlists);
     return this._renderResponse(h, {
       data: {playlists},
+    });
+  }
+
+  async deletePlaylistHandler(req, h) {
+    await this._playlistsService.verifyPlaylistOwner(req.params.id, req.auth.credentials.id);
+    await this._playlistsService.deletePlaylistById(req.params.id);
+
+    return this._renderResponse(h, {
+      msg: 'Succes to delete playlist',
     });
   }
 

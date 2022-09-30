@@ -1,5 +1,7 @@
 const {Pool} = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
+const NotFoundError = require('../../exceptions/NotFoundError');
+const AuthorizationError = require('../../exceptions/AuthorizationError');
 const {nanoid} = require('nanoid');
 const {mapDBToPlaylistModel} = require('../../utils/playlists');
 
@@ -31,5 +33,31 @@ module.exports = class PlaylistsService {
       values: [owner],
     });
     return res.rows.map(mapDBToPlaylistModel);
+  }
+
+  async deletePlaylistById(id) {
+    const res = await this._pool.query({
+      text: 'DELETE FROM playlists WHERE id = $1 RETURNING id',
+      values: [id],
+    });
+
+    if (!res.rowCount) {
+      throw new NotFoundError('failed to delete playlist. id not found');
+    }
+  }
+
+  async verifyPlaylistOwner(id, owner) {
+    const res = await this._pool.query({
+      text: 'SELECT * FROM playlists WHERE id = $1',
+      values: [id],
+    });
+
+    if (!res.rowCount) {
+      throw new NotFoundError('playlist not found');
+    }
+
+    if (res.rows[0].owner !== owner) {
+      throw new AuthorizationError('can not access this resource');
+    }
   }
 };
