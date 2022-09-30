@@ -3,7 +3,7 @@ const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 const AuthorizationError = require('../../exceptions/AuthorizationError');
 const {nanoid} = require('nanoid');
-const {mapDBToPlaylistModel} = require('../../utils/playlists');
+const {mapDBToPlaylistModel, mapDBToDetailSongOnPlaylistModel} = require('../../utils/playlists');
 
 module.exports = class PlaylistsService {
   constructor() {
@@ -72,5 +72,27 @@ module.exports = class PlaylistsService {
     if (!res.rowCount) {
       throw new InvariantError('failed to add song to playlist');
     }
+  }
+
+  async getSongsOnPlaylist(playlistId, owner) {
+    const playlist = await this._pool.query({
+      text: `SELECT playlists.id, playlists.name, users.username FROM playlists 
+            FULL OUTER JOIN users ON users.id = playlists.owner WHERE playlists.id = $1`,
+      values: [playlistId],
+    });
+
+    const songs = await this._pool.query({
+      text: `SELECT songs.id, songs.title, songs.performer FROM songs
+            INNER JOIN playlist_songs ps 
+                   ON songs.id = ps.song_id
+            INNER JOIN playlists
+                ON playlists.id = ps.playlist_id
+            WHERE playlist_id = $1 AND playlists.owner = $2`,
+      values: [playlistId, owner],
+    });
+
+    playlist.rows[0].songs = songs.rows;
+
+    return playlist.rows[0];
   }
 };

@@ -5,4 +5,11 @@ const mapDBToPlaylistModel = ({
   id: playlist_id, name, username: owner,
 });
 
-module.exports = {mapDBToPlaylistModel};
+const mapDBToDetailSongOnPlaylistModel = (playlist, songs) => ({
+  id: playlist.id,
+  name: playlist.name,
+  username: playlist.owner,
+  songs: {songs},
+});
+
+module.exports = {mapDBToPlaylistModel, mapDBToDetailSongOnPlaylistModel};

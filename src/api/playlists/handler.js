@@ -47,6 +47,15 @@ module.exports = class PlaylistsHandler {
     });
   }
 
+  async getSongsOnPlaylistsHandler(req, h) {
+    await this._playlistsService.verifyPlaylistOwner(req.params.id, req.auth.credentials.id);
+    const playlist = await this._playlistsService.getSongsOnPlaylist(req.params.id, req.auth.credentials.id);
+
+    return this._renderResponse(h, {
+      data: {playlist},
+    });
+  }
+
   _renderResponse(h, {msg, data, statusCode = 200}) {
     const resObj = {
       status: 'success',
