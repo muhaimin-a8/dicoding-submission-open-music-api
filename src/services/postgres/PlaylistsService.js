@@ -60,4 +60,17 @@ module.exports = class PlaylistsService {
       throw new AuthorizationError('can not access this resource');
     }
   }
+
+  async addSongToPlaylists(playlistId, {songId}) {
+    const id = `playlist_song-${nanoid(16)}`;
+
+    const res = await this._pool.query({
+      text: 'INSERT INTO playlist_songs VALUES ($1, $2,$3) RETURNING id',
+      values: [id, playlistId, songId],
+    });
+
+    if (!res.rowCount) {
+      throw new InvariantError('failed to add song to playlist');
+    }
+  }
 };

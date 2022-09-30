@@ -1,6 +1,7 @@
 module.exports = class PlaylistsHandler {
-  constructor(playlistservice, validator) {
+  constructor(playlistservice, songsService, validator) {
     this._playlistsService = playlistservice;
+    this._songsService = songsService;
     this._validator = validator;
   }
 
@@ -29,7 +30,20 @@ module.exports = class PlaylistsHandler {
     await this._playlistsService.deletePlaylistById(req.params.id);
 
     return this._renderResponse(h, {
-      msg: 'Succes to delete playlist',
+      msg: 'Success to delete playlist',
+    });
+  }
+
+  async postSongToPlaylistsHandler(req, h) {
+    this._validator.validatePostSongOnPlaylistPayload(req.payload);
+
+    await this._playlistsService.verifyPlaylistOwner(req.params.id, req.auth.credentials.id);
+    await this._songsService.verifySongIsExists(req.payload.songId);
+    await this._playlistsService.addSongToPlaylists(req.params.id, req.payload);
+
+    return this._renderResponse(h, {
+      msg: 'success to add song on playlist',
+      statusCode: 201,
     });
   }
 

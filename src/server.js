@@ -28,6 +28,7 @@ const path = require('path');
 const Jwt = require('@hapi/jwt');
 
 const init = async ()=>{
+  const songsService = new SongsService();
   const server = Hapi.server({
     port: process.env.PORT,
     host: process.env.HOST,
@@ -72,7 +73,7 @@ const init = async ()=>{
     {
       plugin: songsPlugin,
       options: {
-        service: new SongsService(),
+        service: songsService,
         validator: SongsValidator,
       },
     },
@@ -96,6 +97,7 @@ const init = async ()=>{
       plugin: playlistsPlugin,
       options: {
         playlistsService: new PlaylistsService(),
+        songsService: songsService,
         validator: PlaylistsValidator,
       },
     },
