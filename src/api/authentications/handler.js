@@ -11,9 +11,11 @@ module.exports = class AuthenticationsHandler {
 
     const id = await this._usersService.verifyUserCredential(req.payload);
 
+    // generate Jwt access and refresh token
     const accessToken = this._tokenManager.generateAccessToken({id});
     const refreshToken = this._tokenManager.generateRefreshToken({id});
 
+    // store Jwt refreshToken to database
     await this._authenticationsService.addRefreshToken(refreshToken);
 
     return this._renderResponse(h, {
@@ -23,25 +25,27 @@ module.exports = class AuthenticationsHandler {
   }
 
   async putAuthenticationHandler(req, h) {
-    console.log('dd');
     this._validator.validatePutAuthenticationPayload(req.payload);
     const {refreshToken} = req.payload;
 
-    const {id} = await this._tokenManager.verifyRefreshToken(refreshToken);
     await this._authenticationsService.verifyRefreshToken(refreshToken);
+    const {id} = await this._tokenManager.verifyRefreshToken(refreshToken);
+
+    const newAccessToken = await this._tokenManager.generateAccessToken(id);
 
     return this._renderResponse(h, {
       data: {
-        accessToken: this._tokenManager.generateAccessToken(id),
+        accessToken: newAccessToken,
       },
     });
   }
 
   async deleteAuthenticationHandler(req, h) {
     this._validator.validateDeleteAuthenticationPayload(req.payload);
+    const {refreshToken} = req.payload;
 
-    await this._authenticationsService.verifyRefreshToken(req.payload.refreshToken);
-    await this._authenticationsService.deleteRefreshToken(req.payload.refreshToken);
+    await this._authenticationsService.verifyRefreshToken(refreshToken);
+    await this._authenticationsService.deleteRefreshToken(refreshToken);
 
     return this._renderResponse(h, {
       msg: 'Success to delete refresh token',
