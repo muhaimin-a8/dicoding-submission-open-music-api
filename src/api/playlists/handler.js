@@ -1,6 +1,7 @@
 module.exports = class PlaylistsHandler {
-  constructor(playlistservice, songsService, validator) {
-    this._playlistsService = playlistservice;
+  constructor(playlistsService, activitiesService, songsService, validator) {
+    this._playlistsService = playlistsService;
+    this._activitiesService = activitiesService;
     this._songsService = songsService;
     this._validator = validator;
   }
@@ -25,21 +26,26 @@ module.exports = class PlaylistsHandler {
     });
   }
 
-  async deletePlaylistHandler(req, h) {
-    await this._playlistsService.verifyPlaylistOwner(req.params.id, req.auth.credentials.id);
-    await this._playlistsService.deletePlaylistById(req.params.id);
+  async deletePlaylistByIdHandler(req, h) {
+    const {id: playlistId} = req.params;
+    const {id: credentialId} = req.auth.credentials;
+
+    await this._playlistsService.verifyPlaylistOwner(playlistId, credentialId);
+    await this._playlistsService.deletePlaylistById(playlistId);
 
     return this._renderResponse(h, {
       msg: 'Success to delete playlist',
     });
   }
 
-  async postSongToPlaylistsHandler(req, h) {
+  async postSongOnPlaylistsHandler(req, h) {
     this._validator.validatePostSongOnPlaylistPayload(req.payload);
-    await this._playlistsService.verifyPlaylistAccess(req.params.id, req.auth.credentials.id);
-    await this._playlistsService.verifyPlaylistOwner(req.params.id, req.auth.credentials.id);
+    const {id: playlistId} = req.params;
+    const {id: credentialId} = req.auth.credentials;
+
+    await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
     await this._songsService.verifySongIsExists(req.payload.songId);
-    await this._playlistsService.addSongToPlaylists(req.params.id, req.payload);
+    await this._playlistsService.addSongToPlaylists(playlistId, req.payload);
 
     return this._renderResponse(h, {
       msg: 'success to add song on playlist',
@@ -48,9 +54,11 @@ module.exports = class PlaylistsHandler {
   }
 
   async getSongsOnPlaylistsHandler(req, h) {
-    await this._playlistsService.verifyPlaylistOwner(req.params.id, req.auth.credentials.id);
-    await this._playlistsService.verifyPlaylistAccess(req.params.id, req.auth.credentials.id);
-    const playlist = await this._playlistsService.getSongsOnPlaylist(req.params.id, req.auth.credentials.id);
+    const {id: playlistId} = req.params;
+    const {id: credentialId} = req.auth.credentials;
+
+    await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
+    const playlist = await this._playlistsService.getSongsOnPlaylist(playlistId, credentialId);
 
     return this._renderResponse(h, {
       data: {playlist},
@@ -59,13 +67,30 @@ module.exports = class PlaylistsHandler {
 
   async deleteSongOnPlaylistHandler(req, h) {
     this._validator.validateDeleteSongOnPlaylistPayload(req.payload);
-    await this._playlistsService.verifyPlaylistAccess(req.params.id, req.auth.credentials.id);
-    await this._playlistsService.verifyPlaylistOwner(req.params.id, req.auth.credentials.id);
+    const {id: playlistId} = req.params;
+    const {id: credentialId} = req.auth.credentials;
+
+    await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
     await this._songsService.verifySongIsExists(req.payload.songId);
     await this._playlistsService.deleteSongOnPlaylist(req.payload.songId);
 
     return this._renderResponse(h, {
-      msg: 'success to delete song',
+      msg: 'success to delete song on playlist',
+    });
+  }
+
+  async getActivitiesOnPlaylistHandler(req, h) {
+    const {id: playListId} = req.params;
+    const {id: credentialId} = req.auth.credentials;
+
+    await this._playlistsService.verifyPlaylistAccess(playListId, credentialId);
+    const activities = this._activitiesService.getActivities(playListId);
+
+    return this._renderResponse(h, {
+      data: {
+        playListId: playListId,
+        activities,
+      },
     });
   }
 

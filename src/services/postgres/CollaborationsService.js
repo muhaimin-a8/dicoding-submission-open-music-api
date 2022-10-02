@@ -2,7 +2,7 @@ const {Pool} = require('pg');
 const {nanoid} = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 
-class CollaborationsService {
+module.exports = class CollaborationsService {
   constructor() {
     this._pool = new Pool();
   }
@@ -18,7 +18,7 @@ class CollaborationsService {
     const result = await this._pool.query(query);
 
     if (!result.rows.length) {
-      throw new InvariantError('Kolaborasi gagal ditambahkan');
+      throw new InvariantError('failed to add collaboration');
     }
     return result.rows[0].id;
   }
@@ -37,17 +37,14 @@ class CollaborationsService {
   }
 
   async verifyCollaborator(playlistId, userId) {
-    const query = {
+    const res = await this._pool.query({
       text: 'SELECT * FROM collaborations WHERE playlist_id = $1 AND user_id = $2',
       values: [playlistId, userId],
-    };
+    });
 
-    const result = await this._pool.query(query);
-
-    if (!result.rows.length) {
-      throw new InvariantError('Kolaborasi gagal diverifikasi');
+    if (!res.rows.length) {
+      throw new InvariantError('failed to verify collaborator');
     }
   }
-}
+};
 
-module.exports = CollaborationsService;

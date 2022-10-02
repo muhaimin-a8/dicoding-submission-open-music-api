@@ -23,10 +23,12 @@ module.exports = class AuthenticationsHandler {
   }
 
   async putAuthenticationHandler(req, h) {
+    console.log('dd');
     this._validator.validatePutAuthenticationPayload(req.payload);
+    const {refreshToken} = req.payload;
 
-    await this._authenticationsService.verifyRefreshToken(req.payload.refreshToken);
-    const {id} = await this._tokenManager.verifyRefreshToken(req.payload.refreshToken);
+    const {id} = await this._tokenManager.verifyRefreshToken(refreshToken);
+    await this._authenticationsService.verifyRefreshToken(refreshToken);
 
     return this._renderResponse(h, {
       data: {

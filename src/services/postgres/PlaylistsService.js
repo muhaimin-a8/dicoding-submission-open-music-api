@@ -28,12 +28,12 @@ module.exports = class PlaylistsService {
   async getPlaylists(owner) {
     const res = await this._pool.query({
       text: `SELECT p.id, p.name, u.username FROM playlists p
-            LEFT JOIN collaborations c on c.playlist_id = p.id
-            LEFT JOIN users u ON u.id = p.owner
-             WHERE p.owner = $1 OR c.user_id = $1;`,
+             LEFT JOIN collaborations c on c.playlist_id = p.id
+             LEFT JOIN users u ON u.id = p.owner
+             WHERE p.owner = $1 OR c.user_id = $1`,
       values: [owner],
     });
-    console.log(res.rows);
+
     return res.rows;
   }
 
@@ -53,6 +53,7 @@ module.exports = class PlaylistsService {
       text: 'SELECT * FROM playlists WHERE id = $1',
       values: [id],
     });
+
     if (!res.rowCount) {
       throw new NotFoundError('playlist not found');
     }
@@ -65,14 +66,14 @@ module.exports = class PlaylistsService {
   async verifyPlaylistAccess(playlistId, userId) {
     try {
       await this.verifyPlaylistOwner(playlistId, userId);
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        throw e;
       }
       try {
         await this._collaborationsService.verifyCollaborator(playlistId, userId);
       } catch {
-        throw error;
+        throw e;
       }
     }
   }
@@ -93,14 +94,15 @@ module.exports = class PlaylistsService {
   async getSongsOnPlaylist(playlistId, owner) {
     const playlist = await this._pool.query({
       text: `SELECT playlists.id, playlists.name, users.username FROM playlists 
-            FULL OUTER JOIN users ON users.id = playlists.owner WHERE playlists.id = $1`,
+             FULL OUTER JOIN users ON users.id = playlists.owner 
+             WHERE playlists.id = $1`,
       values: [playlistId],
     });
 
     const songs = await this._pool.query({
       text: `SELECT songs.id, songs.title, songs.performer FROM songs
             INNER JOIN playlist_songs ps 
-                   ON songs.id = ps.song_id
+                ON songs.id = ps.song_id
             INNER JOIN playlists
                 ON playlists.id = ps.playlist_id
             WHERE playlist_id = $1 AND playlists.owner = $2`,
@@ -117,8 +119,7 @@ module.exports = class PlaylistsService {
       text: 'DELETE FROM playlist_songs WHERE song_id = $1 RETURNING id',
       values: [songId],
     });
-    console.log(songId);
-    console.log(res.rows);
+
     if (!res.rowCount) {
       throw new NotFoundError('failed to delete song. Id not found');
     }

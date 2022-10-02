@@ -1,6 +1,5 @@
 const {Pool} = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
-const {token} = require('@hapi/jwt');
 
 class AuthenticationsService {
   constructor() {
@@ -9,10 +8,13 @@ class AuthenticationsService {
 
   async addRefreshToken(token) {
     const res = await this._pool.query({
-      text: 'INSERT INTO authentications VALUES ($1)',
+      text: 'INSERT INTO authentications VALUES ($1) RETURNING token',
       values: [token],
     });
-    console.log(res);
+
+    if (!res.rowCount) {
+      throw new InvariantError('failed to add new refreshToken');
+    }
   }
 
   async verifyRefreshToken(token) {
@@ -20,12 +22,10 @@ class AuthenticationsService {
       text: 'SELECT token FROM authentications WHERE token = $1',
       values: [token],
     });
-    console.log(token);
+
     if (!res.rowCount) {
       throw new InvariantError('Invalid refresh token');
     }
-
-    return res.rows[0].id;
   }
 
   async deleteRefreshToken(token) {
