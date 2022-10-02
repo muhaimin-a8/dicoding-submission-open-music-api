@@ -3,11 +3,11 @@ const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 const AuthorizationError = require('../../exceptions/AuthorizationError');
 const {nanoid} = require('nanoid');
-const {mapDBToPlaylistModel} = require('../../utils/playlists');
 
 module.exports = class PlaylistsService {
-  constructor() {
+  constructor(collaborationsService) {
     this._pool = new Pool();
+    this._collaborationsService = collaborationsService;
   }
 
   async addPlaylist(name, owner) {
@@ -26,14 +26,15 @@ module.exports = class PlaylistsService {
   }
 
   async getPlaylists(owner) {
-    // TODO change query of this code
     const res = await this._pool.query({
-      text: `SELECT playlists.id as playlist_id, playlists.name as name, playlists.owner as owner FROM playlists 
-            LEFT JOIN users ON playlists.owner = users.id
-             WHERE playlists.owner = $1 OR users.id = $1`,
+      text: `SELECT p.id, p.name, u.username FROM playlists p
+            LEFT JOIN collaborations c on c.playlist_id = p.id
+            LEFT JOIN users u ON u.id = p.owner
+             WHERE p.owner = $1 OR c.user_id = $1;`,
       values: [owner],
     });
-    return res.rows.map(mapDBToPlaylistModel);
+    console.log(res.rows);
+    return res.rows;
   }
 
   async deletePlaylistById(id) {
@@ -52,13 +53,27 @@ module.exports = class PlaylistsService {
       text: 'SELECT * FROM playlists WHERE id = $1',
       values: [id],
     });
-
     if (!res.rowCount) {
       throw new NotFoundError('playlist not found');
     }
 
     if (res.rows[0].owner !== owner) {
       throw new AuthorizationError('can not access this resource');
+    }
+  }
+
+  async verifyPlaylistAccess(playlistId, userId) {
+    try {
+      await this.verifyPlaylistOwner(playlistId, userId);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this._collaborationsService.verifyCollaborator(playlistId, userId);
+      } catch {
+        throw error;
+      }
     }
   }
 
