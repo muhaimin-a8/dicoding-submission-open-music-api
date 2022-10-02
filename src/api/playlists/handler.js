@@ -42,10 +42,16 @@ module.exports = class PlaylistsHandler {
     this._validator.validatePostSongOnPlaylistPayload(req.payload);
     const {id: playlistId} = req.params;
     const {id: credentialId} = req.auth.credentials;
+    const {songId} = req.payload;
 
     await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
-    await this._songsService.verifySongIsExists(req.payload.songId);
-    await this._playlistsService.addSongToPlaylists(playlistId, req.payload);
+    await this._songsService.verifySongIsExists(songId);
+    await this._playlistsService.addSongToPlaylists(playlistId, songId);
+
+    // store activities
+    await this._activitiesService.addActivities({
+      playlistId, songId, userId: credentialId, action: 'add',
+    });
 
     return this._renderResponse(h, {
       msg: 'success to add song on playlist',
@@ -69,10 +75,16 @@ module.exports = class PlaylistsHandler {
     this._validator.validateDeleteSongOnPlaylistPayload(req.payload);
     const {id: playlistId} = req.params;
     const {id: credentialId} = req.auth.credentials;
+    const {songId} = req.payload;
 
     await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
-    await this._songsService.verifySongIsExists(req.payload.songId);
-    await this._playlistsService.deleteSongOnPlaylist(req.payload.songId);
+    await this._songsService.verifySongIsExists(songId);
+    await this._playlistsService.deleteSongOnPlaylist(songId);
+
+    // store activities
+    await this._activitiesService.addActivities({
+      playlistId, songId, userId: credentialId, action: 'add',
+    });
 
     return this._renderResponse(h, {
       msg: 'success to delete song on playlist',
@@ -80,16 +92,15 @@ module.exports = class PlaylistsHandler {
   }
 
   async getActivitiesOnPlaylistHandler(req, h) {
-    const {id: playListId} = req.params;
+    const {id: playlistId} = req.params;
     const {id: credentialId} = req.auth.credentials;
 
-    await this._playlistsService.verifyPlaylistAccess(playListId, credentialId);
-    const activities = this._activitiesService.getActivities(playListId);
+    await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
+    const activities = this._activitiesService.getActivities(playlistId);
 
     return this._renderResponse(h, {
       data: {
-        playListId: playListId,
-        activities,
+        playlistId, activities,
       },
     });
   }

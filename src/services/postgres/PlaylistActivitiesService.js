@@ -7,12 +7,13 @@ module.exports = class PlaylistActivitiesService {
     this._pool = new Pool();
   }
 
-  async addActivities({playListId, songId, userId, action, time}) {
+  async addActivities({playlistId, songId, userId, action}) {
     const id = `activities-${nanoid(16)}`;
-
-    const res = this._pool.query({
+    const time = new Date().toISOString();
+    console.log(userId);
+    const res = await this._pool.query({
       text: 'INSERT INTO playlist_song_activities VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-      values: [id, playListId, songId, userId, action, time],
+      values: [id, playlistId, songId, userId, action, time],
     });
 
     if (!res.rowCount) {

@@ -78,7 +78,7 @@ module.exports = class PlaylistsService {
     }
   }
 
-  async addSongToPlaylists(playlistId, {songId}) {
+  async addSongToPlaylists(playlistId, songId) {
     const id = `playlist_song-${nanoid(16)}`;
 
     const res = await this._pool.query({
