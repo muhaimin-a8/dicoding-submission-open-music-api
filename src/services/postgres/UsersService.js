@@ -2,6 +2,7 @@ const {Pool} = require('pg');
 const {nanoid} = require('nanoid');
 const bcrypt = require('bcryptjs');
 const InvariantError = require('../../exceptions/InvariantError');
+const NotFoundError = require('../../exceptions/NotFoundError');
 const AuthenticationError = require('../../exceptions/AuthenticationError');
 
 class UsersService {
@@ -36,6 +37,17 @@ class UsersService {
 
     if (res.rowCount > 0) {
       throw new InvariantError('Failed to add new user. Username already used');
+    }
+  }
+
+  async verifyUserIfExists(userId) {
+    const res = await this._pool.query({
+      text: 'SELECT id FROM users WHERE id = $1',
+      values: [userId],
+    });
+
+    if (!res.rowCount) {
+      throw new NotFoundError('User not fund');
     }
   }
 

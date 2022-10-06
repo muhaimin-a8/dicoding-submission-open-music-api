@@ -101,11 +101,11 @@ module.exports = class PlaylistsService {
 
     const songs = await this._pool.query({
       text: `SELECT songs.id, songs.title, songs.performer FROM songs
-            INNER JOIN playlist_songs ps 
+            LEFT JOIN playlist_songs ps 
                 ON songs.id = ps.song_id
-            INNER JOIN playlists
+            LEFT JOIN playlists
                 ON playlists.id = ps.playlist_id
-            WHERE playlist_id = $1 AND playlists.owner = $2`,
+            WHERE playlist_id = $1 OR playlists.owner = $2`,
       values: [playlistId, owner],
     });
 

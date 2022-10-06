@@ -83,7 +83,7 @@ module.exports = class PlaylistsHandler {
 
     // store activities
     await this._activitiesService.addActivities({
-      playlistId, songId, userId: credentialId, action: 'add',
+      playlistId, songId, userId: credentialId, action: 'delete',
     });
 
     return this._renderResponse(h, {
@@ -96,7 +96,7 @@ module.exports = class PlaylistsHandler {
     const {id: credentialId} = req.auth.credentials;
 
     await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
-    const activities = this._activitiesService.getActivities(playlistId);
+    const activities = await this._activitiesService.getActivities(playlistId);
 
     return this._renderResponse(h, {
       data: {

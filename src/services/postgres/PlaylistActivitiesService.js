@@ -21,10 +21,13 @@ module.exports = class PlaylistActivitiesService {
 
   async getActivities(playListId) {
     const res = await this._pool.query({
-      text: 'SELECT * FROM playlist_song_activities WHERE playlist_id = $1',
+      text: `SELECT u.username, s.title, psa.action, psa.time FROM playlist_song_activities psa 
+            LEFT JOIN playlists p ON p.id = psa.playlist_id 
+            LEFT JOIN users u ON u.id = p.owner
+            LEFT JOIN songs s ON psa.song_id = s.id
+            WHERE playlist_id = $1`,
       values: [playListId],
     });
-
     return res.rows;
   }
 };

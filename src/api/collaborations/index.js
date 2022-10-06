@@ -7,6 +7,7 @@ module.exports = {
   register: async (server, {
     collaborationsService,
     playlistsService,
+    usersService,
     validator,
   }) => {
     server.route(
@@ -14,6 +15,7 @@ module.exports = {
             new CollaborationsHandler(
                 collaborationsService,
                 playlistsService,
+                usersService,
                 validator,
             ),
         ),

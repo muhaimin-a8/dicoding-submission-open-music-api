@@ -1,7 +1,8 @@
 module.exports = class CollaborationsHandler {
-  constructor(collaborationsService, playlistsService, validator) {
+  constructor(collaborationsService, playlistsService, usersService, validator) {
     this._collaborationsService = collaborationsService;
     this._playlistsService = playlistsService;
+    this._usersService = usersService;
     this._validator = validator;
   }
 
@@ -12,6 +13,7 @@ module.exports = class CollaborationsHandler {
     const {playlistId, userId} = req.payload;
 
     await this._playlistsService.verifyPlaylistOwner(playlistId, credentialId);
+    await this._usersService.verifyUserIfExists(userId);
     const collaborationId = await this._collaborationsService.addCollaboration(playlistId, userId);
 
     return this._renderResponse(h, {
@@ -24,13 +26,13 @@ module.exports = class CollaborationsHandler {
     this._validator.validateDeleteCollaborationPayload(req.payload);
 
     const {id: credentialId} = req.auth.credentials;
-    const {playlistId} = req.payload;
+    const {playlistId, userId} = req.payload;
 
     await this._playlistsService.verifyPlaylistOwner(playlistId, credentialId);
-    await this._collaborationsService.deleteCollaboration(playlistId, credentialId);
+    await this._collaborationsService.deleteCollaboration(playlistId, userId);
 
     return this._renderResponse(h, {
-      msg: 'success to add collaboration',
+      msg: 'success to delete collaboration',
     });
   }
 

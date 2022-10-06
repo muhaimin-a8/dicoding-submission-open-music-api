@@ -26,7 +26,6 @@ exports.up = (pgm) => {
     },
     time: {
       type: 'TIMESTAMP',
-      notNull: true,
       default: pgm.func('current_timestamp'),
     },
   });

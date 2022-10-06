@@ -30,8 +30,9 @@ module.exports = class CollaborationsService {
     };
 
     const result = await this._pool.query(query);
-
-    if (!result.rows.length) {
+    console.log(`${playlistId}:${userId}`);
+    console.log(result.rows);
+    if (!result.rowCount) {
       throw new InvariantError('Kolaborasi gagal dihapus');
     }
   }
@@ -41,6 +42,7 @@ module.exports = class CollaborationsService {
       text: 'SELECT * FROM collaborations WHERE playlist_id = $1 AND user_id = $2',
       values: [playlistId, userId],
     });
+    console.log(`${playlistId}:${userId}`);
 
     if (!res.rows.length) {
       throw new InvariantError('failed to verify collaborator');
