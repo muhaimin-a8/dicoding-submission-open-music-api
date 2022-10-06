@@ -24,7 +24,7 @@ class AlbumsService {
 
   async getAlbumById(id) {
     const album = await this._pool.query({
-      text: 'SELECT * FROM albums WHERE id = $1',
+      text: 'SELECT id, name, year, cover FROM albums WHERE id = $1',
       values: [id],
     });
 
@@ -32,12 +32,12 @@ class AlbumsService {
       throw new NotFoundError('album can not be found');
     }
 
-    const songs = await this._pool.query({
+    album.rows[0].songs = await this._pool.query({
       text: 'SELECT id, title, performer FROM songs WHERE album_id = $1',
       values: [album.rows[0].id],
-    });
+    }).rows;
 
-    return mapDBToAlbumSongModel({album: album.rows[0], songs: songs.rows});
+    return album.rows.map(mapDBToAlbumSongModel)[0];
   }
 
   async editAlbumById(id, {name, year}) {
@@ -60,6 +60,16 @@ class AlbumsService {
 
     if (!res.rows.length) {
       throw new NotFoundError('failed to delete album. Id can not be found');
+    }
+  }
+
+  async addCover(albumId, cover) {
+    const res = await this._pool.query({
+      text: 'UPDATE albums SET cover = $1 WHERE id = $2 RETURNING id',
+      values: [cover, albumId],
+    });
+    if (!res.rowCount) {
+      throw new NotFoundError('failed to add cover. Id can not be found');
     }
   }
 }
