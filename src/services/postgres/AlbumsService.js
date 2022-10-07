@@ -72,6 +72,17 @@ class AlbumsService {
       throw new NotFoundError('failed to add cover. Id can not be found');
     }
   }
+
+  async verifyAlbumIsExists(id) {
+    const res= await this._pool.query({
+      text: 'SELECT id FROM albums WHERE id = $1',
+      values: [id],
+    });
+
+    if (!res.rowCount) {
+      throw new NotFoundError('album not found');
+    }
+  }
 }
 
 module.exports = AlbumsService;
