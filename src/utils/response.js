@@ -1,5 +1,9 @@
 const response = {
-  send: (h, {message, data, statusCode = 200}) =>{
+  send: (
+      h,
+      {message, data, statusCode = 200},
+      header = null,
+  ) =>{
     const resObj = {
       status: 'success',
       message: message,
@@ -17,6 +21,9 @@ const response = {
     const res = h.response(resObj);
     res.code(statusCode);
 
+    if (header != null) {
+      res.header(header.name, header.value);
+    }
     return res;
   },
 };

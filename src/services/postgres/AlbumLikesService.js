@@ -3,8 +3,9 @@ const {nanoid} = require('nanoid');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
 module.exports = class AlbumLikesService {
-  constructor() {
+  constructor(cacheService) {
     this._pool = new Pool();
+    this._cacheService = cacheService;
   }
 
   async addLike(albumId, userId) {
@@ -24,12 +25,25 @@ module.exports = class AlbumLikesService {
   }
 
   async getLikesCount(albumId) {
-    const res = await this._pool.query({
-      text: 'SELECT id FROM user_album_likes WHERE album_id = $1',
-      values: [albumId],
-    });
+    try {
+      const res = await this._cacheService.get(`album-likes:${albumId}`);
 
-    return res.rowCount;
+      return {
+        type: 'cache',
+        data: parseInt(res),
+      };
+    } catch (e) {
+      const res = await this._pool.query({
+        text: 'SELECT id FROM user_album_likes WHERE album_id = $1',
+        values: [albumId],
+      });
+
+      await this._cacheService.set(`album-likes:${albumId}`, res.rowCount);
+      return {
+        type: 'db',
+        data: res.rowCount,
+      };
+    }
   }
 
   async _deleteLike(albumId, userId) {
@@ -41,6 +55,8 @@ module.exports = class AlbumLikesService {
     if (!res.rowCount) {
       throw new NotFoundError('failed to unlike album');
     }
+
+    await this._cacheService.delete(`album-likes:${albumId}`);
   }
 
   async _checkIsLiked(albumId, userId) {

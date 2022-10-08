@@ -19,8 +19,23 @@ module.exports = class LikesHandler {
   async getAlbumLikesHandler(req, h) {
     const likes = await this._albumLikesService.getLikesCount(req.params.id);
 
-    return response.send(h, {
-      data: {likes},
-    });
+    if (likes.type === 'cache') {
+      return response.send(h, {
+        data: {
+          likes: likes.data,
+        },
+      },
+      {
+        name: 'X-data-source',
+        value: 'cache',
+      },
+      );
+    } else {
+      return response.send(h, {
+        data: {
+          likes: likes.data,
+        },
+      });
+    }
   }
 };

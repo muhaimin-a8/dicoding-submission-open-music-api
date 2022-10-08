@@ -43,7 +43,10 @@ const fs = require('fs');
 const path = require('path');
 const Jwt = require('@hapi/jwt');
 
+const CacheService = require('./services/redis/CacheService');
+
 const init = async ()=>{
+  const cacheService = new CacheService();
   const songsService = new SongsService();
   const usersService = new UsersService();
   const collaborationService = new CollaborationsService();
@@ -52,7 +55,7 @@ const init = async ()=>{
   const collaborationsService = new CollaborationsService();
   const albumsService = new AlbumsService();
   const storageService = new StorageService();
-  const albumLikesService = new AlbumLikesService();
+  const albumLikesService = new AlbumLikesService(cacheService);
 
   const server = Hapi.server({
     port: process.env.PORT,

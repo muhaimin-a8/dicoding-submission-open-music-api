@@ -32,10 +32,12 @@ class AlbumsService {
       throw new NotFoundError('album can not be found');
     }
 
-    album.rows[0].songs = await this._pool.query({
+    const songs = await this._pool.query({
       text: 'SELECT id, title, performer FROM songs WHERE album_id = $1',
       values: [album.rows[0].id],
-    }).rows;
+    });
+
+    album.rows[0].songs = songs.rows;
 
     return album.rows.map(mapDBToAlbumSongModel)[0];
   }
