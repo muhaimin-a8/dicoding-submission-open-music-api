@@ -1,3 +1,5 @@
+const response = require('../../utils/response');
+
 module.exports = class PlaylistsHandler {
   constructor(playlistsService, activitiesService, songsService, validator) {
     this._playlistsService = playlistsService;
@@ -12,7 +14,7 @@ module.exports = class PlaylistsHandler {
 
     const playlistId = await this._playlistsService.addPlaylist(req.payload.name, credentialId);
 
-    return this._renderResponse(h, {
+    return response.send(h, {
       data: {playlistId},
       statusCode: 201,
     });
@@ -21,7 +23,7 @@ module.exports = class PlaylistsHandler {
   async getPlaylistsHandler(req, h) {
     const playlists = await this._playlistsService.getPlaylists(req.auth.credentials.id);
 
-    return this._renderResponse(h, {
+    return response.send(h, {
       data: {playlists},
     });
   }
@@ -33,8 +35,8 @@ module.exports = class PlaylistsHandler {
     await this._playlistsService.verifyPlaylistOwner(playlistId, credentialId);
     await this._playlistsService.deletePlaylistById(playlistId);
 
-    return this._renderResponse(h, {
-      msg: 'Success to delete playlist',
+    return response.send(h, {
+      message: 'Success to delete playlist',
     });
   }
 
@@ -53,8 +55,8 @@ module.exports = class PlaylistsHandler {
       playlistId, songId, userId: credentialId, action: 'add',
     });
 
-    return this._renderResponse(h, {
-      msg: 'success to add song on playlist',
+    return response.send(h, {
+      message: 'success to add song on playlist',
       statusCode: 201,
     });
   }
@@ -66,7 +68,7 @@ module.exports = class PlaylistsHandler {
     await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
     const playlist = await this._playlistsService.getSongsOnPlaylist(playlistId, credentialId);
 
-    return this._renderResponse(h, {
+    return response.send(h, {
       data: {playlist},
     });
   }
@@ -86,8 +88,8 @@ module.exports = class PlaylistsHandler {
       playlistId, songId, userId: credentialId, action: 'delete',
     });
 
-    return this._renderResponse(h, {
-      msg: 'success to delete song on playlist',
+    return response.send(h, {
+      message: 'success to delete song on playlist',
     });
   }
 
@@ -98,31 +100,10 @@ module.exports = class PlaylistsHandler {
     await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
     const activities = await this._activitiesService.getActivities(playlistId);
 
-    return this._renderResponse(h, {
+    return response.send(h, {
       data: {
         playlistId, activities,
       },
     });
-  }
-
-  _renderResponse(h, {msg, data, statusCode = 200}) {
-    const resObj = {
-      status: 'success',
-      message: msg,
-      data: data,
-    };
-
-    if (msg === null) {
-      delete resObj['message'];
-    }
-
-    if (data === null) {
-      delete resObj['data'];
-    }
-
-    const res = h.response(resObj);
-    res.code(statusCode);
-
-    return res;
   }
 };

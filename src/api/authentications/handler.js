@@ -1,3 +1,5 @@
+const response = require('../../utils/response');
+
 module.exports = class AuthenticationsHandler {
   constructor(authenticationsService, usersService, tokenManager, validator) {
     this._authenticationsService = authenticationsService;
@@ -18,7 +20,7 @@ module.exports = class AuthenticationsHandler {
     // store Jwt refreshToken to database
     await this._authenticationsService.addRefreshToken(refreshToken);
 
-    return this._renderResponse(h, {
+    return response.send(h, {
       data: {accessToken, refreshToken},
       statusCode: 201,
     });
@@ -33,7 +35,7 @@ module.exports = class AuthenticationsHandler {
 
     const newAccessToken = await this._tokenManager.generateAccessToken(id);
 
-    return this._renderResponse(h, {
+    return response.send(h, {
       data: {
         accessToken: newAccessToken,
       },
@@ -47,29 +49,8 @@ module.exports = class AuthenticationsHandler {
     await this._authenticationsService.verifyRefreshToken(refreshToken);
     await this._authenticationsService.deleteRefreshToken(refreshToken);
 
-    return this._renderResponse(h, {
-      msg: 'Success to delete refresh token',
+    return response.send(h, {
+      message: 'Success to delete refresh token',
     });
-  }
-
-  _renderResponse(h, {msg, data, statusCode = 200}) {
-    const resObj = {
-      status: 'success',
-      message: msg,
-      data: data,
-    };
-
-    if (msg === null) {
-      delete resObj['message'];
-    }
-
-    if (data === null) {
-      delete resObj['data'];
-    }
-
-    const res = h.response(resObj);
-    res.code(statusCode);
-
-    return res;
   }
 };

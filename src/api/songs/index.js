@@ -5,6 +5,8 @@ module.exports = {
   name: 'songs',
   version: '1.0.0',
   register: async (server, {service, validator}) =>{
-    server.route(routes(new SongsHandler(service, validator)));
+    server.route(routes(
+        new SongsHandler(service, validator),
+    ));
   },
 };

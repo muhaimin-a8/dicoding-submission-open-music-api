@@ -5,7 +5,8 @@ module.exports = {
   name: 'uploads',
   version: '1.0.0',
   register: async (server, {albumsService, storageService, validator}) => {
-    const exportsHandler = new UploadsHandler(albumsService, storageService, validator);
-    server.route(routes(exportsHandler));
+    server.route(routes(
+        new UploadsHandler(albumsService, storageService, validator),
+    ));
   },
 };
