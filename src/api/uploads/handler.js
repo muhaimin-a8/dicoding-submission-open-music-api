@@ -8,9 +8,10 @@ module.exports = class UploadsHandler {
   }
 
   async postUploadCoverAlbumHandler(req, h) {
-    this._validator.validateCoverAlbumPayloadSchema(req.payload);
+    const {cover} = req.payload;
+    this._validator.validateImageHeadersPayloadSchema(cover.hapi.headers);
 
-    const url = await this._storageService.writeFile(req.payload.cover, req.payload.cover.hapi );
+    const url = await this._storageService.writeFile(cover, cover.hapi );
     await this._albumsService.addCover(req.params.id, url);
 
     return response.send(h, {

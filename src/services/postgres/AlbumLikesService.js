@@ -16,6 +16,8 @@ module.exports = class AlbumLikesService {
         values: [id, userId, albumId],
       });
 
+      await this._cacheService.delete(`album-likes:${albumId}`);
+
       if (!res.rowCount) {
         throw new NotFoundError('failed to like album. Id can not be found');
       }
